@@ -1,0 +1,14 @@
+{
+  "name": "ralph-demo-todo",
+  "version": "0.0.1",
+  "description": "Demo todo CLI for stress-testing ralph-loop",
+  "main": "src/cli.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "jest --passWithNoTests"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

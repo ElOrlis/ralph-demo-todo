@@ -1,0 +1,5 @@
+node_modules/
+*.log
+todos.json
+.ralph/
+mcp-iteration-*.log
