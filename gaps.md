@@ -125,6 +125,17 @@ Accepting this suggestion silently demotes a human-gated criterion to auto-passi
 The annotation tells Claude not to worry about it, but this is contradictory: if it's not verified, why list it? Claude reasonably outputs "DONE" for any work and Ralph passes the task regardless.
 **Fix (couples with G3)**: prompt should say something like "Manual criteria require human approval after this turn. Implement what you can, then say DONE." And then Ralph must actually wait for that approval (G3).
 
+### G15. Projects v2 created as Private with no log line, appears "missing" to non-owners
+**Evidence**: Ralph logged `Created project #1 at https://github.com/users/ElOrlis/projects/1` and successfully linked all 4 issues to it (verified via `gh api graphql`). But Projects v2 created via the GraphQL `createProjectV2` mutation default to **Private** visibility on personal accounts. From a logged-out browser or any account other than `ElOrlis`, the project page 404s and the issue sidebar shows no project link — making it look like Ralph never created the project at all.
+**Impact**: high confusion for the user (and a believable but false "Ralph didn't create the project" gap report). Also affects collaborator workflows: a teammate viewing the PR can't see the project board unless explicitly added.
+**Cause**: `lib/github/projects.js:5-17` (`createProject`) sends `createProjectV2(input: {ownerId, title})` without `public: true`. GitHub's default is private.
+**Fix**:
+1. Either flip the default to public — match the repo's visibility — by extending the mutation to `createProjectV2(input: {ownerId, title, public: true})` when the target repo is public. (For private repos, keep private.)
+2. OR add an explicit `--project-visibility public|private` flag with a sensible default (matching repo).
+3. **At minimum**: log the visibility on creation: `[INFO] Created project #1 (private) at <url>` so users know to flip it manually if they want to share.
+4. Document in CLAUDE.md / README that personal-account projects default to private and may need `gh project edit 1 --owner X --visibility public`.
+**Priority**: P1 (silent UX failure that looks like a much worse bug).
+
 ### G14. `--analyze-prd` tells Claude about the PRD then re-renders local stats first
 **Evidence**: cosmetic — the stats block (Executable Coverage, deps) renders before the Claude analysis, which is fine, but the order is reversed in the help text.
 **Fix**: trivial doc fix.
@@ -152,6 +163,7 @@ The annotation tells Claude not to worry about it, but this is contradictory: if
 | G4 | Issue close silently fails | P1 | S (after G1) | Trust |
 | G5 | PR never marked ready | P1 | XS (after G1) | Trust |
 | G10 | Git push wrapper swallows errors | P1 | S | Diagnosability |
+| G15 | Projects v2 created Private silently | P1 | XS | Looks like total failure |
 | G8 | Description has no markdown slot | P2 | XS | UX |
 | G12 | Project field sync silent | P2 | S | Observability |
 | G13 | Manual criterion prompt is contradictory | P2 | XS | Couples with G3 |
