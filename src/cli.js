@@ -19,9 +19,18 @@ if (cmd === 'add') {
   if (!todos.length) {
     console.log('No todos.');
   } else {
-    for (const t of todos) {
-      console.log(`${t.done ? '[x]' : '[ ]'} ${t.id}. ${t.text}`);
-    }
+    const useColor = process.stdout.isTTY && process.env.NO_COLOR === undefined;
+    const dim = useColor ? '\x1b[2m' : '';
+    const cyan = useColor ? '\x1b[36m' : '';
+    const green = useColor ? '\x1b[32m' : '';
+    const reset = useColor ? '\x1b[0m' : '';
+    const width = String(todos.length).length;
+    todos.forEach((t, i) => {
+      const n = String(i + 1).padStart(width, ' ');
+      const box = t.done ? `${green}[x]${reset}` : '[ ]';
+      const text = t.done ? `${dim}${t.text}${reset}` : t.text;
+      console.log(`${cyan}${n}.${reset} ${box} ${text}`);
+    });
   }
 } else {
   console.error('Usage: cli.js <add|list> [args]');
